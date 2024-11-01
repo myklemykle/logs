@@ -1,13 +1,25 @@
 class GitHubAuth {
   constructor() {
+      console.log('GitHubAuth initializing...');
       this.init();
   }
 
-  init() {
+  async init() {
       // Check if we have a stored token
       const token = localStorage.getItem('github_token');
+      console.log('Stored token exists:', !!token);
+      
       if (token) {
-          this.validateToken(token);
+          console.log('Attempting to validate stored token...');
+          try {
+              await this.validateToken(token);
+              this.showApp();
+          } catch (error) {
+              console.error('Stored token validation failed:', error);
+              this.showLogin();
+          }
+      } else {
+          this.showLogin();
       }
 
       // Set up login button
@@ -41,10 +53,13 @@ class GitHubAuth {
       });
       
       if (!response.ok) {
+          console.error('Token validation failed:', response.status, response.statusText);
           localStorage.removeItem('github_token');
-          this.showLogin();
           throw new Error('Invalid token');
       }
+      
+      console.log('Token validation successful');
+      return true;
   }
 
   showApp() {
