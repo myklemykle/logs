@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futel Operator Log</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="auth-container">
+        <div class="auth-form">
+            <h2>Futel Operator Log</h2>
+            <div class="setup-instructions">
+                <h3>First Time Setup</h3>
+                <p>To use this app, you'll need a GitHub Personal Access Token (PAT). Here's how to get one:</p>
+                <ol>
+                    <li>Go to <a href="https://github.com/settings/tokens?type=beta" target="_blank">GitHub Fine-grained Tokens</a></li>
+                    <li>Click "Generate new token"</li>
+                    <li>Set a token name (e.g., "Futel Operator Log")</li>
+                    <li>Set expiration (recommend: 90 days)</li>
+                    <li>Under "Repository access" select "Only select repositories"</li>
+                    <li>Choose the "myklemykle/logs" repository</li>
+                    <li>Under "Repository permissions", expand "Contents" and set it to "Read and write"</li>
+                    <li>Click "Generate token"</li>
+                    <li>Copy your new token (it starts with 'github_pat_')</li>
+                </ol>
+                <div class="warning-note">
+                    ⚠️ Save your token somewhere safe! You won't be able to see it again after leaving the page.
+                </div>
+            </div>
+            
+            <div class="token-input-section">
+                <h3>Enter Your Token</h3>
+                <input type="password" 
+                       id="token-input" 
+                       placeholder="github_pat_..." 
+                       autocomplete="off"
+                       spellcheck="false">
+                <button id="login-button">Login</button>
+                <div class="token-help">
+                    <p>Already have a token but can't access it? 
+                       <a href="https://github.com/settings/tokens?type=beta" target="_blank">Generate a new one</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="app-container" style="display: none">
+        <!-- Our form will go here later -->
+    </div>
+    <script src="js/auth.js"></script>
+</body>
+</html>
