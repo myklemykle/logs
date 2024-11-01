@@ -46,7 +46,46 @@
         </div>
     </div>
     <div id="app-container" style="display: none">
-        <!-- Our form will go here later -->
+        <div class="log-form">
+            <h2>Log Operator Call</h2>
+            <form id="operator-log-form">
+                <div class="form-group">
+                    <label for="timestamp">Date and Time of Call</label>
+                    <input type="datetime-local" 
+                           id="timestamp" 
+                           name="timestamp" 
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="extension">Caller Location</label>
+                    <select id="extension" name="extension" required>
+                        <option value="">Select location...</option>
+                        <option value="other">Other (enter phone number)</option>
+                        <!-- Extensions will be loaded here -->
+                    </select>
+                </div>
+
+                <div class="form-group" id="other-phone-container" style="display: none;">
+                    <label for="other-phone">Phone Number</label>
+                    <input type="tel" 
+                           id="other-phone" 
+                           name="other-phone" 
+                           placeholder="Enter phone number">
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Call Details</label>
+                    <textarea id="notes" 
+                             name="notes" 
+                             rows="6" 
+                             placeholder="Describe what happened during the call..."
+                             required></textarea>
+                </div>
+
+                <button type="submit">Submit Log Entry</button>
+            </form>
+        </div>
     </div>
     <script src="js/auth.js"></script>
 </body>
