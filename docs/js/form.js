@@ -7,6 +7,7 @@ class OperatorLogForm {
         this.otherPhoneInput = document.getElementById('other-phone');
         this.logoutButton = document.getElementById('logout-button');
         this.operatorNameInput = document.getElementById('operator-name');
+        this.submitButton = document.getElementById('submit-button');
         this.init();
     }
 
@@ -129,12 +130,19 @@ class OperatorLogForm {
         return callDateTime;
     }
 
+    setSubmitButtonState(isSubmitting) {
+        this.submitButton.disabled = isSubmitting;
+        this.submitButton.textContent = isSubmitting ? 'Logging...' : 'Submit Log Entry';
+    }
 
     async handleSubmit(e) {
         e.preventDefault();
-        const formData = new FormData(this.form);
         
         try {
+            this.setSubmitButtonState(true);  // Disable button and show "Logging..."
+            
+            const formData = new FormData(this.form);
+            
             const callDateTime = this.validateDateTime(
                 formData.get('call-date'),
                 formData.get('call-time')
@@ -168,17 +176,14 @@ class OperatorLogForm {
 
             await this.submitToGitHub(logEntry);
 
-            // Clear form but keep operator name
-            const savedName = this.operatorNameInput.value;
-            this.form.reset();
-            this.setDefaultDateTime();
-            this.operatorNameInput.value = savedName;
-            
             alert('Log entry submitted successfully!');
+            // Reload the page after user acknowledges success
+            window.location.reload();
 
         } catch (error) {
             console.error('Submission error:', error);
             alert(`Error: ${error.message}`);
+            this.setSubmitButtonState(false);  // Only restore button on error
         }
     }
 

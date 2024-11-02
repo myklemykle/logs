@@ -22,7 +22,12 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="auth-container">
+    <div id="loading-container">
+        <img src="futel_logo_black.png" alt="Futel Logo" class="loading-logo">
+        <div class="loading-spinner"></div>
+        <p>Connecting ...</p>
+    </div>
+    <div id="auth-container" style="display: none">
         <div class="auth-form">
             <h2>Futel Operator Log</h2>
             <div class="setup-instructions">
@@ -117,7 +122,7 @@
                              required></textarea>
                 </div>
 
-                <button type="submit">Submit Log Entry</button>
+                <button type="submit" id="submit-button">Submit Log Entry</button>
             </form>
         </div>
     </div>

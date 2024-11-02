@@ -9,17 +9,20 @@ class GitHubAuth {
       const token = localStorage.getItem('github_token');
       console.log('Stored token exists:', !!token);
       
-      if (token) {
-          console.log('Attempting to validate stored token...');
-          try {
+      try {
+          if (token) {
+              console.log('Attempting to validate stored token...');
               await this.validateToken(token);
               this.showApp();
-          } catch (error) {
-              console.error('Stored token validation failed:', error);
+          } else {
               this.showLogin();
           }
-      } else {
+      } catch (error) {
+          console.error('Token validation failed:', error);
           this.showLogin();
+      } finally {
+          // Hide loading screen in all cases
+          document.getElementById('loading-container').style.display = 'none';
       }
 
       // Set up login button
