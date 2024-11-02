@@ -8,6 +8,8 @@ class OperatorLogForm {
         this.logoutButton = document.getElementById('logout-button');
         this.operatorNameInput = document.getElementById('operator-name');
         this.submitButton = document.getElementById('submit-button');
+        this.formTitle = document.getElementById('form-title');
+        this.adminSettings = document.getElementById('admin-settings');
         this.init();
     }
 
@@ -16,6 +18,8 @@ class OperatorLogForm {
         this.setupEventListeners();
         this.setDefaultDateTime();
         this.loadSavedOperatorName();
+        this.setupAdminInterface();
+        this.loadAdminSettings();
     }
 
     /**
@@ -220,15 +224,18 @@ class OperatorLogForm {
      */
     async submitToGitHub(logEntry) {
         const token = localStorage.getItem('github_token');
-        const branch = 'logform';  // Specify target branch
+        const repo = localStorage.getItem('target_repo') || 'futel';
+        const branch = localStorage.getItem('target_branch') || 'main';
         
         if (!token) {
             throw new Error('Not authenticated. Please log in again.');
         }
 
-        // First get the current file, specifying branch
-        const response = await fetch(
-            `https://api.github.com/repos/myklemykle/logs/contents/operator?ref=${branch}`, {
+        // Update API URLs to use selected repo
+        const baseUrl = `https://api.github.com/repos/${repo}/logs/contents/operator`;
+        
+        // First get the current file
+        const response = await fetch(`${baseUrl}?ref=${branch}`, {
             headers: {
                 'Authorization': `token ${token}`,
                 'Accept': 'application/vnd.github.v3+json'
@@ -282,5 +289,50 @@ class OperatorLogForm {
         if (savedName) {
             this.operatorNameInput.value = savedName;
         }
+    }
+
+    setupAdminInterface() {
+        let pressTimer;
+        
+        this.formTitle.addEventListener('touchstart', (e) => {
+            pressTimer = setTimeout(() => this.toggleAdminSettings(), 1000);
+        });
+        
+        this.formTitle.addEventListener('mousedown', (e) => {
+            pressTimer = setTimeout(() => this.toggleAdminSettings(), 1000);
+        });
+        
+        ['touchend', 'mouseup', 'mouseleave'].forEach(evt => {
+            this.formTitle.addEventListener(evt, () => {
+                clearTimeout(pressTimer);
+            });
+        });
+
+        // Save settings when changed
+        document.querySelectorAll('[name="target-repo"], [name="target-branch"]')
+            .forEach(radio => {
+                radio.addEventListener('change', () => this.saveAdminSettings());
+            });
+    }
+
+    toggleAdminSettings() {
+        this.adminSettings.style.display = 
+            this.adminSettings.style.display === 'none' ? 'block' : 'none';
+    }
+
+    loadAdminSettings() {
+        const repo = localStorage.getItem('target_repo') || 'futel';
+        const branch = localStorage.getItem('target_branch') || 'main';
+        
+        document.querySelector(`[name="target-repo"][value="${repo}"]`).checked = true;
+        document.querySelector(`[name="target-branch"][value="${branch}"]`).checked = true;
+    }
+
+    saveAdminSettings() {
+        const repo = document.querySelector('[name="target-repo"]:checked').value;
+        const branch = document.querySelector('[name="target-branch"]:checked').value;
+        
+        localStorage.setItem('target_repo', repo);
+        localStorage.setItem('target_branch', branch);
     }
 }

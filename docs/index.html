@@ -68,9 +68,36 @@
     <div id="app-container" style="display: none">
         <div class="log-form">
             <div class="header">
-                <h2>Log Operator Call</h2>
+                <h2 id="form-title">Log Operator Call</h2>
                 <button id="logout-button" type="button" class="logout-button">Logout</button>
             </div>
+            
+            <!-- Add hidden admin settings -->
+            <div id="admin-settings" style="display: none" class="admin-settings">
+                <div class="form-group">
+                    <label>Target Repository:</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="target-repo" value="futel" checked> futel/logs
+                        </label>
+                        <label>
+                            <input type="radio" name="target-repo" value="myklemykle"> myklemykle/logs
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Target Branch:</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="target-branch" value="main" checked> main
+                        </label>
+                        <label>
+                            <input type="radio" name="target-branch" value="logform"> logform
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <form id="operator-log-form">
                 <div class="form-row">
                     <label for="operator-name">Operator Name</label>
