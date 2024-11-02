@@ -50,10 +50,18 @@
             <h2>Log Operator Call</h2>
             <form id="operator-log-form">
                 <div class="form-group">
-                    <label for="timestamp">Date and Time of Call</label>
-                    <input type="datetime-local" 
-                           id="timestamp" 
-                           name="timestamp" 
+                    <label for="call-date">Date of Call</label>
+                    <input type="date" 
+                           id="call-date" 
+                           name="call-date" 
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="call-time">Time of Call</label>
+                    <input type="time" 
+                           id="call-time" 
+                           name="call-time"
                            required>
                 </div>
 
@@ -88,5 +96,6 @@
         </div>
     </div>
     <script src="js/auth.js"></script>
+    <script src="js/form.js"></script>
 </body>
 </html>

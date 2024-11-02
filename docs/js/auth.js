@@ -63,8 +63,12 @@ class GitHubAuth {
   }
 
   showApp() {
+      console.log('Showing app...');
       document.getElementById('auth-container').style.display = 'none';
       document.getElementById('app-container').style.display = 'block';
+      
+      // Initialize the form after showing the app container
+      new OperatorLogForm();
   }
 
   showLogin() {

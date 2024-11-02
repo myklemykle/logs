@@ -10,7 +10,7 @@ class OperatorLogForm {
     async init() {
         await this.loadExtensions();
         this.setupEventListeners();
-        this.setDefaultTimestamp();
+        this.setDefaultDateTime();
     }
 
     async loadExtensions() {
@@ -18,18 +18,33 @@ class OperatorLogForm {
             const response = await fetch('https://raw.githubusercontent.com/futel/dialplan-functions/main/app-dialplan/chalicelib/assets/extensions.json');
             const extensions = await response.json();
             
-            // Sort extensions by name
+            // Clear existing options
+            this.extensionSelect.innerHTML = '';
+            
+            // Add default options
+            this.extensionSelect.add(new Option('Select location...', ''));
+            
+            // Sort and add extensions
             const sortedExtensions = Object.entries(extensions).sort((a, b) => 
-                a[1].name.localeCompare(b[1].name)
+                a[0].localeCompare(b[0])
             );
 
-            // Add options to select
-            sortedExtensions.forEach(([ext, details]) => {
-                const option = document.createElement('option');
-                option.value = ext;
-                option.textContent = `${details.name} (${ext})`;
-                this.extensionSelect.insertBefore(option, this.extensionSelect.lastChild);
+            sortedExtensions.forEach(([name, details]) => {
+                // Format the phone number
+                let phoneNum = details.caller_id;
+                if (phoneNum.startsWith('+1')) {
+                    phoneNum = phoneNum.substring(2);  // strip +1
+                }
+                if (phoneNum.length === 10) {
+                    phoneNum = `(${phoneNum.substring(0,3)}) ${phoneNum.substring(3,6)}-${phoneNum.substring(6)}`;
+                }
+                
+                this.extensionSelect.add(new Option(`${name} — ${phoneNum}`, details.caller_id));
             });
+            
+            // Add "Other" option at the end
+            this.extensionSelect.add(new Option('Other (enter phone number)', 'other'));
+            
         } catch (error) {
             console.error('Failed to load extensions:', error);
             alert('Failed to load extension list. Please refresh the page.');
@@ -46,25 +61,41 @@ class OperatorLogForm {
         });
     }
 
-    setDefaultTimestamp() {
+    setDefaultDateTime() {
         const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('timestamp').value = now.toISOString().slice(0, 16);
+        
+        // Format date as YYYY-MM-DD (this format works in all browsers)
+        const dateStr = now.toLocaleDateString('en-CA'); // Uses YYYY-MM-DD format
+        document.getElementById('call-date').value = dateStr;
+        
+        // Format time as HH:mm (24-hour format)
+        const timeStr = now.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+        document.getElementById('call-time').value = timeStr;
+        
+        console.log('Set default date:', dateStr); // Debug log
+        console.log('Set default time:', timeStr); // Debug log
     }
 
-    validateTimestamp(timestamp) {
-        const date = new Date(timestamp);
+    validateDateTime(date, time) {
+        const [year, month, day] = date.split('-').map(Number);
+        const [hours, minutes] = time.split(':').map(Number);
+        
+        const callDateTime = new Date(year, month - 1, day, hours, minutes);
         const now = new Date();
         const oneYearAgo = new Date();
         oneYearAgo.setFullYear(now.getFullYear() - 1);
 
-        if (date > now) {
-            throw new Error('Timestamp cannot be in the future');
+        if (callDateTime > now) {
+            throw new Error('Call time cannot be in the future');
         }
-        if (date < oneYearAgo) {
-            throw new Error('Timestamp cannot be more than one year old');
+        if (callDateTime < oneYearAgo) {
+            throw new Error('Call time cannot be more than one year old');
         }
-        return true;
+        return callDateTime;
     }
 
     async handleSubmit(e) {
@@ -72,24 +103,25 @@ class OperatorLogForm {
         const formData = new FormData(this.form);
         
         try {
-            // Validate timestamp
-            this.validateTimestamp(formData.get('timestamp'));
+            // Validate and combine date/time
+            const callDateTime = this.validateDateTime(
+                formData.get('call-date'),
+                formData.get('call-time')
+            );
 
-            // Format the log entry
-            const timestamp = new Date(formData.get('timestamp')).toISOString();
             const location = formData.get('extension') === 'other' 
                 ? formData.get('other-phone')
                 : formData.get('extension');
             const notes = formData.get('notes');
 
-            const logEntry = `${timestamp} ${location}\n${notes}\n`;
+            const logEntry = `${callDateTime.toISOString()} ${location}\n${notes}\n`;
 
             // Submit to GitHub
             await this.submitToGitHub(logEntry);
 
-            // Clear form
+            // Clear form and reset defaults
             this.form.reset();
-            this.setDefaultTimestamp();
+            this.setDefaultDateTime();
             alert('Log entry submitted successfully!');
 
         } catch (error) {
