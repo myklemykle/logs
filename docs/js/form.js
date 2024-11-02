@@ -1,10 +1,12 @@
 class OperatorLogForm {
     constructor() {
+        console.log('Initializing OperatorLogForm');
         this.form = document.getElementById('operator-log-form');
         this.extensionSelect = document.getElementById('extension');
         this.otherPhoneContainer = document.getElementById('other-phone-container');
         this.otherPhoneInput = document.getElementById('other-phone');
         this.logoutButton = document.getElementById('logout-button');
+        this.operatorNameInput = document.getElementById('operator-name');
         this.init();
     }
 
@@ -12,6 +14,7 @@ class OperatorLogForm {
         await this.loadExtensions();
         this.setupEventListeners();
         this.setDefaultDateTime();
+        this.loadSavedOperatorName();
     }
 
     /**
@@ -48,7 +51,7 @@ class OperatorLogForm {
             );
 
             sortedExtensions.forEach(([name, details]) => {
-                // Format the phone number
+                // Format the phone number for display
                 let phoneNum = details.caller_id;
                 if (phoneNum.startsWith('+1')) {
                     phoneNum = phoneNum.substring(2);  // strip +1
@@ -57,7 +60,8 @@ class OperatorLogForm {
                     phoneNum = `(${phoneNum.substring(0,3)}) ${phoneNum.substring(3,6)}-${phoneNum.substring(6)}`;
                 }
                 
-                this.extensionSelect.add(new Option(`${name} — ${phoneNum}`, details.caller_id));
+                // Store both name and number in the value, separated by a delimiter
+                this.extensionSelect.add(new Option(`${name} — ${phoneNum}`, `${name}|${details.caller_id}`));
             });
             
             // Add "Other" option at the end
@@ -79,6 +83,13 @@ class OperatorLogForm {
         });
         
         this.logoutButton.addEventListener('click', () => this.handleLogout());
+
+        this.operatorNameInput.addEventListener('change', () => {
+            const name = this.operatorNameInput.value.trim();
+            if (name) {
+                localStorage.setItem('operator_name', name);
+            }
+        });
     }
 
     setDefaultDateTime() {
@@ -118,30 +129,51 @@ class OperatorLogForm {
         return callDateTime;
     }
 
+
     async handleSubmit(e) {
         e.preventDefault();
         const formData = new FormData(this.form);
         
         try {
-            // Validate and combine date/time
             const callDateTime = this.validateDateTime(
                 formData.get('call-date'),
                 formData.get('call-time')
             );
 
-            const location = formData.get('extension') === 'other' 
-                ? formData.get('other-phone')
-                : formData.get('extension');
+            // Format the date and time in local timezone
+            const dateStr = callDateTime.getFullYear() + '-' +
+                String(callDateTime.getMonth() + 1).padStart(2, '0') + '-' +
+                String(callDateTime.getDate()).padStart(2, '0');
+            const timeStr = String(callDateTime.getHours()).padStart(2, '0') + ':' +
+                String(callDateTime.getMinutes()).padStart(2, '0');
+            const localDateTime = `${dateStr} ${timeStr}`;
+
+            // Handle location based on whether it's "other" or a known extension
+            let location;
+            if (formData.get('extension') === 'other') {
+                let phoneNum = formData.get('other-phone');
+                if (phoneNum.startsWith('+1')) {
+                    phoneNum = phoneNum.substring(2);
+                }
+                location = phoneNum;
+            } else {
+                const [name] = formData.get('extension').split('|');
+                location = name;
+            }
+
             const notes = formData.get('notes');
+            const operatorName = formData.get('operator-name');
 
-            const logEntry = `${callDateTime.toISOString()} ${location}\n${notes}\n`;
+            const logEntry = `${localDateTime} ${location} ${operatorName}\n${notes}\n`;
 
-            // Submit to GitHub
             await this.submitToGitHub(logEntry);
 
-            // Clear form and reset defaults
+            // Clear form but keep operator name
+            const savedName = this.operatorNameInput.value;
             this.form.reset();
             this.setDefaultDateTime();
+            this.operatorNameInput.value = savedName;
+            
             alert('Log entry submitted successfully!');
 
         } catch (error) {
@@ -204,7 +236,11 @@ class OperatorLogForm {
 
         const data = await response.json();
         const currentContent = atob(data.content);
-        const newContent = currentContent + '\n' + logEntry;
+        
+        // Ensure current content ends with newline, but don't add extra ones
+        const newContent = currentContent.endsWith('\n') 
+            ? currentContent + logEntry
+            : currentContent + '\n' + logEntry;
 
         // Update the file, specifying branch
         const updateResponse = await fetch('https://api.github.com/repos/myklemykle/logs/contents/operator', {
@@ -229,15 +265,17 @@ class OperatorLogForm {
 
     handleLogout() {
         localStorage.removeItem('github_token');
-        // Hide app container and show auth container
+        // Don't remove operator_name on logout
         document.getElementById('app-container').style.display = 'none';
         document.getElementById('auth-container').style.display = 'block';
-        // Clear form data
         this.form.reset();
+        this.loadSavedOperatorName();  // Restore the name after form reset
+    }
+
+    loadSavedOperatorName() {
+        const savedName = localStorage.getItem('operator_name');
+        if (savedName) {
+            this.operatorNameInput.value = savedName;
+        }
     }
 }
-
-// Initialize form when page loads
-window.addEventListener('DOMContentLoaded', () => {
-    const form = new OperatorLogForm();
-});
