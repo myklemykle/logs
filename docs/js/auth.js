@@ -1,6 +1,9 @@
 class GitHubAuth {
   constructor() {
       console.log('GitHubAuth initializing...');
+      this.loadingContainer = document.getElementById('loading-container');
+      this.authContainer = document.getElementById('auth-container');
+      this.appContainer = document.getElementById('app-container');
       this.init();
   }
 
@@ -20,9 +23,6 @@ class GitHubAuth {
       } catch (error) {
           console.error('Token validation failed:', error);
           this.showLogin();
-      } finally {
-          // Hide loading screen in all cases
-          document.getElementById('loading-container').style.display = 'none';
       }
 
       // Set up login button
@@ -67,16 +67,19 @@ class GitHubAuth {
 
   showApp() {
       console.log('Showing app...');
-      document.getElementById('auth-container').style.display = 'none';
-      document.getElementById('app-container').style.display = 'block';
+      this.loadingContainer.style.display = 'none';
+      this.authContainer.style.display = 'none';
+      this.appContainer.style.display = 'block';
       
       // Initialize the form after showing the app container
       new OperatorLogForm();
   }
 
   showLogin() {
-      document.getElementById('auth-container').style.display = 'block';
-      document.getElementById('app-container').style.display = 'none';
+      console.log('Showing login form...');
+      this.loadingContainer.style.display = 'none';
+      this.authContainer.style.display = 'block';
+      this.appContainer.style.display = 'none';
   }
 }
 
