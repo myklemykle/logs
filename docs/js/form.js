@@ -4,6 +4,7 @@ class OperatorLogForm {
         this.extensionSelect = document.getElementById('extension');
         this.otherPhoneContainer = document.getElementById('other-phone-container');
         this.otherPhoneInput = document.getElementById('other-phone');
+        this.logoutButton = document.getElementById('logout-button');
         this.init();
     }
 
@@ -13,6 +14,23 @@ class OperatorLogForm {
         this.setDefaultDateTime();
     }
 
+    /**
+     * Loads and formats extension data from Futel's extensions.json
+     * Data format example:
+     * {
+     *   "alleytwentyseventh": {
+     *         "outgoing": "outgoing_portland", // this probably has some use within the Asterisk server? we don't use it here.
+     *         "caller_id": "+15039288465",       // Full phone number with +1 prefix
+     *         "enable_emergency": true          // we don't use this either. Maybe related to 911?
+     *   },
+     *   "bottles-and-cans-one": {
+     *         "outgoing": "outgoing_portland", 
+     *         "caller_id": "+15034681337",
+     *         "enable_emergency": false
+     *   },
+     * }
+     * Source: https://github.com/futel/dialplan-functions/blob/main/app-dialplan/chalicelib/assets/extensions.json
+     */
     async loadExtensions() {
         try {
             const response = await fetch('https://raw.githubusercontent.com/futel/dialplan-functions/main/app-dialplan/chalicelib/assets/extensions.json');
@@ -59,6 +77,8 @@ class OperatorLogForm {
                 this.extensionSelect.value === 'other' ? 'block' : 'none';
             this.otherPhoneInput.required = this.extensionSelect.value === 'other';
         });
+        
+        this.logoutButton.addEventListener('click', () => this.handleLogout());
     }
 
     setDefaultDateTime() {
@@ -130,14 +150,48 @@ class OperatorLogForm {
         }
     }
 
+    /**
+     * Submits a log entry to GitHub using their REST API
+     * GitHub API response format for getting file contents:
+     * {
+     *   "type": "file",
+     *   "encoding": "base64",
+     *   "size": 5362,
+     *   "name": "operator",
+     *   "path": "operator",
+     *   "content": "base64-encoded-string-of-file-contents...",
+     *   "sha": "3d21ec53a331a6f037a91c368710b99387d012c1",
+     *   "url": "https://api.github.com/repos/myklemykle/logs/contents/operator",
+     *   "git_url": "https://api.github.com/repos/myklemykle/logs/git/blobs/...",
+     *   "html_url": "https://github.com/myklemykle/logs/blob/main/operator",
+     *   "_links": { ... }
+     * }
+     * 
+     * PUT request format to update file:
+     * {
+     *   "message": "commit message",
+     *   "content": "base64-encoded-string-of-new-contents",
+     *   "sha": "current-file-sha-from-get-request"
+     * }
+     * 
+     * References:
+     * - Get contents: https://docs.github.com/en/rest/repos/contents#get-repository-content
+     * - Update file: https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents
+     * 
+     * @param {string} logEntry - The new log entry to append to the file
+     * @throws {Error} If not authenticated or if GitHub operations fail
+     */
     async submitToGitHub(logEntry) {
         const token = localStorage.getItem('github_token');
+        const branch = 'logform';  // Specify target branch
+        
         if (!token) {
             throw new Error('Not authenticated. Please log in again.');
         }
 
-        // First get the current file
-        const response = await fetch('https://api.github.com/repos/myklemykle/logs/contents/operator', {
+        // First get the current file, specifying branch
+        const response = await fetch(
+            `https://api.github.com/repos/myklemykle/logs/contents/operator?ref=${branch}`, {
             headers: {
                 'Authorization': `token ${token}`,
                 'Accept': 'application/vnd.github.v3+json'
@@ -149,10 +203,10 @@ class OperatorLogForm {
         }
 
         const data = await response.json();
-        const currentContent = atob(data.sha);
+        const currentContent = atob(data.content);
         const newContent = currentContent + '\n' + logEntry;
 
-        // Update the file
+        // Update the file, specifying branch
         const updateResponse = await fetch('https://api.github.com/repos/myklemykle/logs/contents/operator', {
             method: 'PUT',
             headers: {
@@ -162,13 +216,24 @@ class OperatorLogForm {
             body: JSON.stringify({
                 message: 'Operator log update',
                 content: btoa(newContent),
-                sha: data.sha
+                sha: data.sha,
+                branch: branch    // Specify branch in the PUT request
             })
         });
 
         if (!updateResponse.ok) {
-            throw new Error('Failed to update log file');
+            const errorData = await updateResponse.json();
+            throw new Error(`Failed to update log file: ${errorData.message}`);
         }
+    }
+
+    handleLogout() {
+        localStorage.removeItem('github_token');
+        // Hide app container and show auth container
+        document.getElementById('app-container').style.display = 'none';
+        document.getElementById('auth-container').style.display = 'block';
+        // Clear form data
+        this.form.reset();
     }
 }
 
