@@ -72,32 +72,23 @@
                 <button id="logout-button" type="button" class="logout-button">Logout</button>
             </div>
             <form id="operator-log-form">
-                <div class="form-group">
+                <div class="form-row">
                     <label for="operator-name">Operator Name</label>
-                    <input type="text" 
-                           id="operator-name" 
-                           name="operator-name" 
-                           required
-                           placeholder="Your name">
+                    <input type="text" id="operator-name" name="operator-name" required>
                 </div>
-                <div class="form-group">
+                
+                <div class="form-row">
                     <label for="call-date">Date of Call</label>
-                    <input type="date" 
-                           id="call-date" 
-                           name="call-date" 
-                           required>
+                    <input type="date" id="call-date" name="call-date" required>
                 </div>
-
-                <div class="form-group">
+                
+                <div class="form-row">
                     <label for="call-time">Time of Call</label>
-                    <input type="time" 
-                           id="call-time" 
-                           name="call-time"
-                           required>
+                    <input type="time" id="call-time" name="call-time" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="extension">Caller Location</label>
+                    <label for="extension">Location</label>
                     <select id="extension" name="extension" required>
                         <option value="">Select location...</option>
                         <option value="other">Other (enter phone number)</option>

@@ -116,7 +116,7 @@ a:hover {
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 1rem;
 }
 
 .form-group label {
@@ -217,4 +217,27 @@ button[type="submit"]:disabled {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Add these new styles */
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    gap: 1rem;  /* space between label and input */
+}
+
+.form-row label {
+    flex: 0 0 120px;  /* fixed width for labels */
+    text-align: right;
+}
+
+.form-row input {
+    flex: 1;  /* take remaining space */
+    max-width: 200px;  /* prevent inputs from getting too wide */
+}
+
+/* Adjust the original form-group for the remaining fields */
+.form-group {
+    margin-bottom: 1rem;
 }
