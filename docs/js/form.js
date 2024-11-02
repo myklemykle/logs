@@ -255,10 +255,10 @@ class OperatorLogForm {
                 'Accept': 'application/vnd.github.v3+json'
             },
             body: JSON.stringify({
-                message: 'Operator log update',
+                message: 'Operator log update via logform',
                 content: btoa(newContent),
                 sha: data.sha,
-                branch: branch    // Specify branch in the PUT request
+                branch: branch
             })
         });
 
