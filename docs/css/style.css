@@ -295,3 +295,10 @@ button[type="submit"]:disabled {
     margin: 0;
     padding: 0;
 }
+
+#form-title {
+    user-select: none;
+    -webkit-user-select: none;  /* Safari specific */
+    -moz-user-select: none;     /* Firefox specific */
+    -ms-user-select: none;      /* IE/Edge specific */
+}
