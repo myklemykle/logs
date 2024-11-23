@@ -254,8 +254,8 @@ class OperatorLogForm {
             ? currentContent + logEntry
             : currentContent + '\n' + logEntry;
 
-        // Update the file, specifying branch
-        const updateResponse = await fetch('https://api.github.com/repos/myklemykle/logs/contents/operator', {
+        // Update the file, using the same baseUrl
+        const updateResponse = await fetch(baseUrl, {
             method: 'PUT',
             headers: {
                 'Authorization': `token ${token}`,
