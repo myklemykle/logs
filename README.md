@@ -1,3 +1,3 @@
 # logs
 
-Human-generated logs for the Futel project.
+Human-generated logs for the Futel project!
