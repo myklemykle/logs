@@ -223,14 +223,9 @@ class OperatorLogForm {
      * @throws {Error} If not authenticated or if GitHub operations fail
      */
     async submitToGitHub(logEntry) {
-        const token = localStorage.getItem('github_token');
         const repo = localStorage.getItem('target_repo') || 'futel';
         const branch = localStorage.getItem('target_branch') || 'main';
         
-        if (!token) {
-            throw new Error('Not authenticated. Please log in again.');
-        }
-
         // GitHub API endpoint for triggering workflow_dispatch events
         const webhookUrl = `https://api.github.com/repos/${repo}/logs/actions/workflows/operator-log.yml/dispatches`;
 
@@ -244,17 +239,16 @@ class OperatorLogForm {
             method: 'POST',
             headers: {
                 'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `token ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                ref: branch,  // Use selected branch from admin settings
+                ref: branch,
                 inputs: {
                     'operator-name': formData.get('operator-name'),
                     'date': callDateTime.toISOString().split('T')[0],
                     'time': formData.get('call-time'),
                     'location': formData.get('extension') === 'other' 
-                        ? 'etc'
+                        ? formData.get('other-phone')
                         : formData.get('extension').split('|')[0],
                     'notes': formData.get('notes')
                 }
