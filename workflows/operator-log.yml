@@ -1,0 +1,69 @@
+name: Log a new operator call
+on:
+  workflow_dispatch:
+    inputs:
+      operator-name:
+        type: string
+        description: Operator Name
+        required: true
+      date:
+        type: string
+        description: "Date (YYYY-MM-DD)"
+        required: true
+        # Basic date format validation
+        pattern: '^\d{4}-\d{2}-\d{2}$'
+      time:
+        type: string
+        description: "Time (24 hour HH:MM)"
+        required: true
+        # Basic time format validation
+        pattern: '^\d{2}:\d{2}$'
+      location:
+        type: string  # Changed from 'choice' to allow dynamic locations
+        description: Location or phone number
+        required: true
+      notes:
+        type: string
+        description: Operator call log here
+        required: true
+      
+jobs:
+  update-log:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Fetch and validate location
+        run: |
+          # Fetch the extensions list
+          EXTENSIONS=$(curl -s https://raw.githubusercontent.com/futel/dialplan-functions/main/app-dialplan/chalicelib/assets/extensions.json)
+          
+          # Check if input location is a known extension name
+          LOCATION="${{ github.event.inputs.location }}"
+          if echo "$EXTENSIONS" | grep -q "\"$LOCATION\":"; then
+            echo "Location is a known extension"
+            exit 0
+          fi
+          
+          # Strip all allowed special characters and check length of remaining alphanumerics
+          STRIPPED=$(echo "$LOCATION" | tr -d ' .,-()+#*' | tr -d '[:space:]')
+          LENGTH=${#STRIPPED}
+          
+          if [[ $LENGTH -ge 7 && $LENGTH -le 16 && "$STRIPPED" =~ ^[[:alnum:]]+$ ]]; then
+            echo "Location appears to be a valid phone number"
+            exit 0
+          else
+            echo "Invalid location: must be a known extension name or a phone number"
+            echo "After stripping special characters: $STRIPPED (length: $LENGTH)"
+            exit 1
+          fi
+
+      - name: Update operator log
+        run: |
+          echo "${{ github.event.inputs.date }} ${{ github.event.inputs.time }} ${{ github.event.inputs.location }} ${{ github.event.inputs.operator-name }}" >> operator
+          echo "${{ github.event.inputs.notes }}" >> operator
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Operator log update via logform"
+          file_pattern: 'operator'

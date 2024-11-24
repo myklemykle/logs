@@ -231,47 +231,39 @@ class OperatorLogForm {
             throw new Error('Not authenticated. Please log in again.');
         }
 
-        // Update API URLs to use selected repo
-        const baseUrl = `https://api.github.com/repos/${repo}/logs/contents/operator`;
-        
-        // First get the current file
-        const response = await fetch(`${baseUrl}?ref=${branch}`, {
+        // GitHub API endpoint for triggering workflow_dispatch events
+        const webhookUrl = `https://api.github.com/repos/${repo}/logs/actions/workflows/operator-log.yml/dispatches`;
+
+        const formData = new FormData(this.form);
+        const callDateTime = this.validateDateTime(
+            formData.get('call-date'),
+            formData.get('call-time')
+        );
+
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
             headers: {
+                'Accept': 'application/vnd.github.v3+json',
                 'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch current log file');
-        }
-
-        const data = await response.json();
-        const currentContent = atob(data.content);
-        
-        // Ensure current content ends with newline, but don't add extra ones
-        const newContent = currentContent.endsWith('\n') 
-            ? currentContent + logEntry
-            : currentContent + '\n' + logEntry;
-
-        // Update the file, using the same baseUrl
-        const updateResponse = await fetch(baseUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github.v3+json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                message: 'Operator log update via logform',
-                content: btoa(newContent),
-                sha: data.sha,
-                branch: branch
+                ref: branch,  // Use selected branch from admin settings
+                inputs: {
+                    'operator-name': formData.get('operator-name'),
+                    'date': callDateTime.toISOString().split('T')[0],
+                    'time': formData.get('call-time'),
+                    'location': formData.get('extension') === 'other' 
+                        ? 'etc'
+                        : formData.get('extension').split('|')[0],
+                    'notes': formData.get('notes')
+                }
             })
         });
 
-        if (!updateResponse.ok) {
-            const errorData = await updateResponse.json();
-            throw new Error(`Failed to update log file: ${errorData.message}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Failed to submit log entry: ${errorData.message}`);
         }
     }
 
