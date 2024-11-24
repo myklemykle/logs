@@ -27,26 +27,25 @@
         <div class="loading-spinner"></div>
         <p>Connecting ...</p>
     </div>
-    <!-- <div id="auth-container" style="display: none">
+    <div id="auth-container" style="display: none">
         <div class="auth-form">
             <h2>Futel Operator Log</h2>
             <div class="setup-instructions">
                 <h3>First Time Setup</h3>
                 <ol>
-                    <li>Go to GitHub → Settings → Developer Settings → <strong>Personal Access Tokens → Tokens (classic)</strong></li>
-                    <li>Click "Generate new token (classic)"</li>
+                    <li>Go to <a href="https://github.com/settings/tokens/new" target="_blank">GitHub → New Personal Access Token</a></li>
                     <li>For "Note" enter something like "Futel Operator Log Form"</li>
                     <li>Set an expiration date (e.g., 90 days)</li>
-                    <li>Under "Select scopes", check only:
+                    <li>Under "Select scopes", check <strong>only</strong>:
                         <ul>
-                            <li>✓ <code>repo</code> (or just <code>repo:status</code> and <code>public_repo</code>)</li>
+                            <li>✓ <code>workflow</code> (allows triggering the log entry action)</li>
                         </ul>
                     </li>
                     <li>Click "Generate token" at the bottom</li>
                     <li>Copy your new token (it starts with <code>ghp_</code>)</li>
                 </ol>
                 <div class="warning-note">
-                    Important: Copy your token now! You won't be able to see it again after leaving the page.
+                    This token is only used to trigger the workflow that adds your log entry. The workflow itself runs with its own permissions. You can revoke this token at any time in your <a href="https://github.com/settings/tokens" target="_blank">GitHub token settings</a>.
                 </div>
             </div>
             
@@ -59,7 +58,7 @@
                 </p>
             </div>
         </div>
-    </div> -->
+    </div> 
     <div id="app-container" style="display: none">
         <div class="log-form">
             <div class="header">
